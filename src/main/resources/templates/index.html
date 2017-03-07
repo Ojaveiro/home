@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml"
+	xmlns:th="http://www.thymeleaf.org">
+<head>
+
+<meta charset="utf-8" />
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+
+<title>Finanças</title>
+<link href="/css/bootstrap.min.css" th:href="@{/css/bootstrap.min.css}"
+	rel="stylesheet" />
+
+<link href="/css/ie10-viewport-bug-workaround.css"
+	th:href="@{/css/ie10-viewport-bug-workaround.css}" rel="stylesheet" />
+<link href="/css/starter-template.css"
+	th:href="@{/css/starter-template.css}" rel="stylesheet" />
+<link rel="stylesheet" href="/css/jquery.dataTables.min.css" />
+
+<script src="/js/ie-emulation-modes-warning.js"
+	th:href="@{/js/ie-emulation-modes-warning.js}"></script>
+
+<script type="text/javascript" src="/js/jquery.min.js">
+	
+</script>
+<script type="text/javascript" src="/js/jquery.dataTables.min.js">
+	
+</script>
+<script src="/js/jquery.table2excel.js"
+	th:href="@{/js/jquery.table2excel.js}"></script>
+<!-- HTML5 shim and Respond.js for IE8 support of HTML5 elements and media queries -->
+<!--[if lt IE 9]>
+      <script src="/js/html5shiv.min.js"></script>
+      <script src="/js/respond.min.js"></script>
+    <![endif]-->
+
+
+<style>
+/* Start by setting display:none to make this hidden.
+   Then we position it in relation to the viewport window
+   with position:fixed. Width, height, top and left speak
+   for themselves. Background we set to 80% white with
+   our animation centered, and no-repeating */
+.modalLoading {
+	display: none;
+	position: fixed;
+	z-index: 1000;
+	top: 0;
+	left: 0;
+	height: 100%;
+	width: 100%;
+	background: rgba(255, 255, 255, .8) url('/img/ajax-loader.gif') 50% 50%
+		no-repeat;
+}
+
+/* When the body has the loading class, we turn
+   the scrollbar off with overflow:hidden */
+body.loading {
+	overflow: hidden;
+}
+
+/* Anytime the body has the loading class, our
+   modal element will be visible */
+body.loading .modalLoading {
+	display: block;
+}
+</style>
+</head>
+
+<body>
+
+	<nav class="navbar navbar-inverse navbar-fixed-top">
+		<div class="container">
+			<div class="navbar-header">
+				<button type="button" class="navbar-toggle collapsed"
+					data-toggle="collapse" data-target="#navbar" aria-expanded="false"
+					aria-controls="navbar">
+					<span class="sr-only">Toggle navigation</span> <span
+						class="icon-bar"></span> <span class="icon-bar"></span> <span
+						class="icon-bar"></span>
+				</button>
+			</div>
+			<div id="navbar" class="collapse navbar-collapse">
+				<nav class="navbar navbar-inverse navbar-fixed-top">
+					<div class="container-fluid">
+						<div class="navbar-header">
+
+							<a class="navbar-brand" href="#">Lançamentos</a>
+						</div>
+						<div id="navbar" class="navbar-collapse collapse">
+							<ul class="nav navbar-nav navbar-right">
+								<li th:if="${autenticado}"><a href="#"
+									onclick="javascript:document.getElementById('frmlogout').submit()">Sair</a></li>
+							</ul>
+						</div>
+					</div>
+				</nav>
+
+
+			</div>
+			<!--/.nav-collapse -->
+		</div>
+	</nav>
+	<div class="container">
+
+		<div class="starter-template" layout:fragment="content">
+			<h3 style="color: blue; text-align: left"></h3>
+		</div>
+
+		<div class="jumbotron">
+			<form action="#" method="POST" th:action="@{/}"
+				th:object="${lancamento}">
+				<div class="form-group row" style="text-align: left">
+
+					<div class="col-sm-2">
+						Conta<select class="form-control" name="conta" th:field="*{conta}" th:value="${lancamento.conta}">
+						<option value="" >Selecionar</option>
+							<option th:each="item : ${contas}" th:value="${item.id}"
+								th:text="${item.nome}" id="conta"></option>
+						</select>
+					</div>
+					<div class="col-sm-3">
+						Data<input class="form-control" th:field="*{data}" 
+							type="date" name="data" id="data" />
+
+					</div>
+					<div class="col-sm-2">
+						Valor<input class="form-control " 
+							th:field="*{valor}" type="text" name="valor" />
+
+					</div>
+					<div class="col-sm-2">
+						&nbsp;<input class="form-control btn btn-primary" type="submit"
+							name="save" value="Salvar" />
+
+					</div>
+
+					<div class="col-sm-2">
+						&nbsp;<a href="#"  class="form-control btn btn-warning btn-sm" onclick="location.href='lancamento?data=' + $('#data').val() + '&amp;conta=' + $('#conta').val() + ''">
+							<span class="glyphicon glyphicon-search">&nbsp;</span>
+						</a>
+					</div>
+				</div>
+			</form>
+		</div>
+
+		<table id="resultado" class="table table-striped">
+			<thead style="background-color: #5cb85c">
+				<tr>
+					<th>Conta</th>
+					<th>Data</th>
+					<th style="text-align: right;">Valor</th>
+					<th></th>
+				</tr>
+			</thead>
+			<tbody>
+				<tr th:each="item : ${list}" data-html="true">
+					<td th:text="${item.conta.nome}"></td>
+					<td th:text="${#dates.format(item.data, 'dd/MM/yyyy')}"></td>
+					<td th:if="${item.valor gt 0} " style="color:blue;text-align: right;" th:text="${item.valor}"></td>
+					<td th:if="${item.valor lt 0} " style="color:red; text-align: right;" th:text="${item.valor}"></td>
+					
+					<td style="text-align: center;"><button
+							class="btn btn-danger btn-sm"
+							th:onclick="'location.href=\'lancamento/'+ ${item.id} + '/remove\''">-</button></td>
+				</tr>
+
+			</tbody>
+			<tfoot style="background-color: #5cb85c">
+				<tr>
+					<td style="text-align: left;"><span
+						style="font-weight: bold;">Total:</span></td>
+					<td></td>
+					<td style="text-align: right;"><span
+						style="font-weight: bold;" th:text="${valorTotal}"></span></td>
+					<td></td>
+				</tr>
+			</tfoot>
+		</table>
+	</div>
+	<!-- /.container -->
+
+	<footer class="footer">
+		<div class="container">
+			<p class="text-muted"></p>
+		</div>
+	</footer>
+
+
+	<script src="/js/bootstrap.min.js"></script>
+	<script src="/js/ie10-viewport-bug-workaround.js"
+		th:href="@{/js/ie10-viewport-bug-workaround.js}"></script>
+	<script>
+		$body = $("body");
+
+		$(document).on({
+			ajaxStart : function() {
+				$body.addClass("loading");
+			},
+			ajaxStop : function() {
+				$body.removeClass("loading");
+			}
+		});
+	</script>
+	<div class="modalLoading"></div>
+</body>
+</html>
